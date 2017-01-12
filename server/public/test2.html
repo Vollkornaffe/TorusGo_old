@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>three.js webgl - geometries</title>
+    <title>TorusGo</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -119,6 +119,8 @@
       var mesh, geometry;
       var d_mesh, d_geometry;
       var mytorus;
+      
+      var raycaster, mouse, line;
 
       var boardMaterial, whiteMaterial, blackMaterial;
       
@@ -153,6 +155,17 @@
         object = new THREE.AxisHelper( 50 );
         object.position.set( 0, 0, 0 );
         scene.add( object );
+
+        var lineGeometry = new THREE.Geometry();
+        lineGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ));
+        lineGeometry.dynamic = true;
+        object = new THREE.LineBasicMaterial({ color: 0xffffff });
+        line = new THREE.Line( lineGeometry, object );
+        scene.add( line );
+        //
+        raycaster = new THREE.Raycaster();
+
+        mouse = new THREE.Vector2();
         //
         renderer = new THREE.WebGLRenderer( { antialias: true } );
         renderer.setPixelRatio( window.devicePixelRatio );
@@ -162,11 +175,18 @@
         container.appendChild( stats.dom );
         //
         window.addEventListener( 'resize', onWindowResize, false );
+        document.addEventListener( 'mousemove', onDocumentMouseMove, false);
       }
+      //
       function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize( window.innerWidth, window.innerHeight );
+      }
+      function onDocumentMouseMove( event ) {
+        event.preventDefault();
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
       }
       //
       function animate() {
@@ -179,12 +199,42 @@
         var delta = clock.getDelta();
         var time = clock.getElapsedTime() * 10;
         var timer = Date.now() * 0.0001;
-        camera.position.x = Math.cos( timer ) * 300;
-        camera.position.z = Math.sin( timer ) * 300;
+        //camera.position.x = Math.cos( timer ) *300;
+        //camera.position.z = Math.sin( timer ) * 300;
+        camera.position.x = 300;
+        camera.position.z = 0;
         camera.lookAt( scene.position );
+      
+        if (mytorus.mesh !== undefined && line !== undefined) {
+          raycaster.setFromCamera( mouse, camera );
+          var intersects = raycaster.intersectObject(mytorus.mesh);
 
-        if (mytorus.mesh !== undefined) {
-          twistTorus(mytorus, 0.01);
+          if (intersects.length > 0) {
+            var intersect = intersects[0];
+            var faceIndex1 = intersect.faceIndex;
+            var face1 = intersect.face;
+
+            // two faces of an rectangle are allways right next to each other
+            var faceIndex2;
+            if (faceIndex1 % 2) {
+              faceIndex2 = faceIndex1 - 1;
+            } else {
+              faceIndex2 = faceIndex1 + 1;
+            }
+            var face2 = mytorus.mesh.geometry.faces[faceIndex2];
+
+            var linePosition = line.geometry.position;
+            var meshPosition = mytorus.mesh.geometry.position;
+            
+
+            line.geometry.verticesNeedUpdate = true;
+
+            line.visible = true;
+          } else {
+            line.visible = false;
+          }
+
+          //twistTorus(mytorus, 0.01);
         }
 
         renderer.render( scene, camera );
