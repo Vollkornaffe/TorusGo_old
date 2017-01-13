@@ -30,8 +30,11 @@
           twist : 0
         };
 
+        this.quads = [];
+        this.boardPositions = [];
         this.geometry = new THREE.Geometry();
 
+        var currFaceIndex = 0;
         var x_ax = new THREE.Vector3(1,0,0);
         var y_ax = new THREE.Vector3(0,1,0);
         for (var i = 0; i < w_seg; i++) {
@@ -41,7 +44,7 @@
             tube * Math.sin(i_rad),
             0
           );
-          
+
           for (var j = 0; j < h_seg; j++) {
             var j_rad = j/w_seg * 2 * Math.PI;
             var newPos = new THREE.Vector3();
@@ -51,25 +54,43 @@
 
             this.geometry.vertices.push(newPos);
 
-            // gen faces
             var thisIdx = i * w_seg + j;
+
+            // gen faces
             if (i !== 0 && j !== 0) {
               this.geometry.faces.push(new THREE.Face3(thisIdx, thisIdx - 1, thisIdx - h_seg));
               this.geometry.faces.push(new THREE.Face3(thisIdx - 1, thisIdx - h_seg, thisIdx - 1 - h_seg));
+              this.quads[thisIdx] = [thisIdx, thisIdx -1, thisIdx - h_seg, thisIdx - 1 - h_seg];
+
               if (j === h_seg - 1) {
                 this.geometry.faces.push(new THREE.Face3(thisIdx - h_seg + 1, thisIdx, thisIdx - h_seg - h_seg + 1));
                 this.geometry.faces.push(new THREE.Face3(thisIdx, thisIdx - h_seg - h_seg + 1,  thisIdx - h_seg));
+                this.quads[thisIdx - h_seg + 1] = [thisIdx - h_seg + 1, thisIdx, thisIdx - h_seg - h_seg + 1, thisIdx - h_seg];
               }
               if (i === w_seg - 1) {
                 this.geometry.faces.push(new THREE.Face3(j, j - 1, thisIdx));
                 this.geometry.faces.push(new THREE.Face3(j - 1, thisIdx, thisIdx - 1));
+                this.quads[j] = [j, j-1, thisIdx, thisIdx - 1];
               }
               if (i === w_seg - 1 && j === h_seg - 1) {
                 this.geometry.faces.push(new THREE.Face3(0, j, thisIdx - h_seg + 1));
                 this.geometry.faces.push(new THREE.Face3(j, thisIdx - h_seg + 1, thisIdx));
+                this.quads[0] = [0, j, thisIdx - h_seg + 1, thisIdx];
               }
             }
           }
+        }
+
+        // gen & link board
+        for (var q in this.quads) {
+            var pos = new THREE.Vector3(0,0,0);
+            
+            pos.addScaledVector(this.geometry.vertices[this.quads[q][0]], 0.25);
+            pos.addScaledVector(this.geometry.vertices[this.quads[q][1]], 0.25);
+            pos.addScaledVector(this.geometry.vertices[this.quads[q][2]], 0.25);
+            pos.addScaledVector(this.geometry.vertices[this.quads[q][3]], 0.25);
+
+          this.boardPositions.push({ status: 0, neighbors: [], position: pos });
         }
 
         this.geometry.computeBoundingSphere();
@@ -108,23 +129,41 @@
           }
         }
 
+        for (var p in torus.boardPositions) {
+          var pos = new THREE.Vector3(0,0,0);
+          
+          pos.addScaledVector(torus.geometry.vertices[torus.quads[p][0]], 0.25);
+          pos.addScaledVector(torus.geometry.vertices[torus.quads[p][1]], 0.25);
+          pos.addScaledVector(torus.geometry.vertices[torus.quads[p][2]], 0.25);
+          pos.addScaledVector(torus.geometry.vertices[torus.quads[p][3]], 0.25);
+          
+          torus.boardPositions[p].position.copy(pos);
+        }
+
         torus.mesh.geometry.verticesNeedUpdate = true;
       }
     </script>
+
+
 
     <script>
       if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
       var container, stats;
       var camera, scene, renderer;
-      var mesh, geometry;
-      var d_mesh, d_geometry;
+      var cameraR = 0;
+
       var mytorus;
+
+      var ghostStone;
+      var playedStones = [];
       
       var raycaster, mouse, line;
 
       var boardMaterial, whiteMaterial, blackMaterial;
       
-      var nextIndex = 0;
+      var currSelection;
+
+      var activeP = 1;
 
       var clock = new THREE.Clock();
 
@@ -146,11 +185,17 @@
         whiteMaterial = new THREE.MeshPhongMaterial( { color: 0xdbdad6, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         blackMaterial = new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         // 
-        mytorus = new myTorus(100,30,20,20);
+        mytorus = new myTorus(100,30,19,19);
         console.log(mytorus.geometry.vertices.length);
         console.log(mytorus.geometry.faces.length);
-
         scene.add(mytorus.mesh);
+
+        object = new THREE.SphereGeometry(5, 8, 6);
+        ghostStone = new THREE.Mesh(object, new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} ));
+        ghostStone.geometry.dynamic = true;
+        ghostStone.position.set(0,0,0);
+        scene.add(ghostStone);
+
 
         object = new THREE.AxisHelper( 50 );
         object.position.set( 0, 0, 0 );
@@ -176,6 +221,8 @@
         //
         window.addEventListener( 'resize', onWindowResize, false );
         document.addEventListener( 'mousemove', onDocumentMouseMove, false);
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false);
+        document.addEventListener( 'keydown', onDocumentKeyDown, false);
       }
       //
       function onWindowResize() {
@@ -188,6 +235,53 @@
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
       }
+      function onDocumentMouseDown( event ) {
+        event.preventDefault();
+        
+        if (mytorus.boardPositions[currSelection].status === 0) {
+          mytorus.boardPositions[currSelection].status = activeP;
+          object = new THREE.SphereGeometry(5, 8, 6);
+          object.dynamic = true;
+          var newStone;
+          if (activeP === 1) {
+            newStone = new THREE.Mesh(object, blackMaterial);
+          } else {
+            newStone = new THREE.Mesh(object, whiteMaterial);
+          }
+          newStone.position.copy(mytorus.boardPositions[currSelection].position);
+          scene.add(newStone);
+          
+          playedStones.push({mesh: newStone, boardIdx: currSelection});
+          activeP = -activeP;
+        } else {
+          mytorus.boardPositions[currSelection].status = 0;
+          var s;
+          for (s in playedStones) {
+            if (playedStones[s].boardIdx === currSelection) {
+              scene.remove( playedStones[s].mesh );
+              break;
+            }
+          }
+          playedStones.splice(s,1);
+        }
+      }
+      function onDocumentKeyDown( event ) {
+        event.preventDefault();
+        switch(event.keyCode) {
+          case 37:
+            cameraR += 0.1;
+            break;
+          case 38:
+            twistTorus(mytorus, 0.05);
+            break;
+          case 39:
+            cameraR -= 0.1;
+            break;
+          case 40:
+            twistTorus(mytorus, -0.05);
+            break;
+        }
+      }
       //
       function animate() {
         requestAnimationFrame( animate );
@@ -199,47 +293,65 @@
         var delta = clock.getDelta();
         var time = clock.getElapsedTime() * 10;
         var timer = Date.now() * 0.0001;
-        //camera.position.x = Math.cos( timer ) *300;
-        //camera.position.z = Math.sin( timer ) * 300;
-        camera.position.x = 300;
-        camera.position.z = 0;
+        camera.position.x = Math.cos( cameraR ) *300;
+        camera.position.z = Math.sin( cameraR ) * 300;
         camera.lookAt( scene.position );
       
-        if (mytorus.mesh !== undefined && line !== undefined) {
+        if (mytorus.mesh !== undefined && ghostStone !== undefined) {
           raycaster.setFromCamera( mouse, camera );
           var intersects = raycaster.intersectObject(mytorus.mesh);
 
           if (intersects.length > 0) {
             var intersect = intersects[0];
-            var faceIndex1 = intersect.faceIndex;
-            var face1 = intersect.face;
+            var faceIndex = intersect.faceIndex;
 
             // two faces of an rectangle are allways right next to each other
+            var faceIndex1;
             var faceIndex2;
-            if (faceIndex1 % 2) {
+            if (faceIndex % 2) {
+              faceIndex1 = faceIndex;
               faceIndex2 = faceIndex1 - 1;
             } else {
-              faceIndex2 = faceIndex1 + 1;
+              faceIndex1 = faceIndex + 1
+              faceIndex2 = faceIndex;
             }
+            var face1 = mytorus.mesh.geometry.faces[faceIndex1];
             var face2 = mytorus.mesh.geometry.faces[faceIndex2];
 
-            var linePosition = line.geometry.position;
-            var meshPosition = mytorus.mesh.geometry.position;
+            currSelection = face2.a;
             
+            var selectedPos = new THREE.Vector3(0,0,0);
+            
+            selectedPos.addScaledVector(mytorus.geometry.vertices[face1.a], 0.25);
+            selectedPos.addScaledVector(mytorus.geometry.vertices[face1.b], 0.25);
+            selectedPos.addScaledVector(mytorus.geometry.vertices[face2.b], 0.25);
+            selectedPos.addScaledVector(mytorus.geometry.vertices[face2.c], 0.25);
 
-            line.geometry.verticesNeedUpdate = true;
+            ghostStone.position.copy(selectedPos);
+            if (activeP === 1) {
+              ghostStone.material.color.setHex(0x20201d);
+            } else {
+              ghostStone.material.color.setHex(0xdbdad6);
+            }
 
-            line.visible = true;
+            ghostStone.geometry.verticesNeedUpdate = true;
+
+            ghostStone.visible = true;
           } else {
-            line.visible = false;
+            ghostStone.visible = false;
           }
+        }
 
-          //twistTorus(mytorus, 0.01);
+        for (var s in playedStones) {
+          playedStones[s].mesh.position.copy(mytorus.boardPositions[playedStones[s].boardIdx].position);
+          playedStones[s].mesh.geometry.verticesNeedUpdate = true;
         }
 
         renderer.render( scene, camera );
       }
     </script>
+
+
 
   </body>
 </html>
