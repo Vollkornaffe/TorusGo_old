@@ -81,14 +81,14 @@
           }
         }
 
-        // gen & link board
+        // gen board TODO: find neighbors
         for (var q in this.quads) {
-            var pos = new THREE.Vector3(0,0,0);
-            
-            pos.addScaledVector(this.geometry.vertices[this.quads[q][0]], 0.25);
-            pos.addScaledVector(this.geometry.vertices[this.quads[q][1]], 0.25);
-            pos.addScaledVector(this.geometry.vertices[this.quads[q][2]], 0.25);
-            pos.addScaledVector(this.geometry.vertices[this.quads[q][3]], 0.25);
+          var pos = new THREE.Vector3(0,0,0);
+          
+          pos.addScaledVector(this.geometry.vertices[this.quads[q][0]], 0.25);
+          pos.addScaledVector(this.geometry.vertices[this.quads[q][1]], 0.25);
+          pos.addScaledVector(this.geometry.vertices[this.quads[q][2]], 0.25);
+          pos.addScaledVector(this.geometry.vertices[this.quads[q][3]], 0.25);
 
           this.boardPositions.push({ status: 0, neighbors: [], position: pos });
         }
@@ -98,6 +98,8 @@
         this.geometry.dynamic = true;
 
         this.mesh = new THREE.Mesh(this.geometry, boardMaterial);
+        this.edgesGeometry = new THREE.EdgesGeometry(this.geometry);
+        this.wireMesh = new THREE.Line(this.edgesGeometry, new THREE.LineBasicMaterial({color: 0x000000, linewidth: 2}));
         this.mesh.position.set(0,0,0);       
       }
 
@@ -139,7 +141,7 @@
           
           torus.boardPositions[p].position.copy(pos);
         }
-
+        
         torus.mesh.geometry.verticesNeedUpdate = true;
       }
     </script>
@@ -175,6 +177,7 @@
         camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
         camera.position.y = 0;
         scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0x0097bd );
         var light, object;
         scene.add( new THREE.AmbientLight( 0x404040 ) );
         light = new THREE.DirectionalLight( 0xffffff );
@@ -185,10 +188,12 @@
         whiteMaterial = new THREE.MeshPhongMaterial( { color: 0xdbdad6, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         blackMaterial = new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         // 
-        mytorus = new myTorus(100,30,19,19);
+        mytorus = new myTorus(100,50,19,19);
         console.log(mytorus.geometry.vertices.length);
         console.log(mytorus.geometry.faces.length);
         scene.add(mytorus.mesh);
+        //scene.add(mytorus.wireMesh);
+        //console.log(mytorus.wire.Meshgeometry.vertices.length);
 
         object = new THREE.SphereGeometry(5, 8, 6);
         ghostStone = new THREE.Mesh(object, new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} ));
@@ -266,18 +271,21 @@
         }
       }
       function onDocumentKeyDown( event ) {
-        event.preventDefault();
         switch(event.keyCode) {
           case 37:
+            event.preventDefault();
             cameraR += 0.1;
             break;
           case 38:
+            event.preventDefault();
             twistTorus(mytorus, 0.05);
             break;
           case 39:
+            event.preventDefault();
             cameraR -= 0.1;
             break;
           case 40:
+            event.preventDefault();
             twistTorus(mytorus, -0.05);
             break;
         }
@@ -293,8 +301,8 @@
         var delta = clock.getDelta();
         var time = clock.getElapsedTime() * 10;
         var timer = Date.now() * 0.0001;
-        camera.position.x = Math.cos( cameraR ) *300;
-        camera.position.z = Math.sin( cameraR ) * 300;
+        camera.position.x = Math.cos( cameraR ) * 500;
+        camera.position.z = Math.sin( cameraR ) * 500;
         camera.lookAt( scene.position );
       
         if (mytorus.mesh !== undefined && ghostStone !== undefined) {
@@ -320,14 +328,8 @@
 
             currSelection = face2.a;
             
-            var selectedPos = new THREE.Vector3(0,0,0);
-            
-            selectedPos.addScaledVector(mytorus.geometry.vertices[face1.a], 0.25);
-            selectedPos.addScaledVector(mytorus.geometry.vertices[face1.b], 0.25);
-            selectedPos.addScaledVector(mytorus.geometry.vertices[face2.b], 0.25);
-            selectedPos.addScaledVector(mytorus.geometry.vertices[face2.c], 0.25);
+            ghostStone.position.copy(mytorus.boardPositions[currSelection].position);
 
-            ghostStone.position.copy(selectedPos);
             if (activeP === 1) {
               ghostStone.material.color.setHex(0x20201d);
             } else {
