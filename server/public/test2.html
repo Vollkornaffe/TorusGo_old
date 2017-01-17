@@ -32,6 +32,8 @@
 
         this.quads = [];
         this.boardPositions = [];
+        this.w_lines = [];
+        this.h_lines = [];
         this.geometry = new THREE.Geometry();
 
         var currFaceIndex = 0;
@@ -90,17 +92,56 @@
           pos.addScaledVector(this.geometry.vertices[this.quads[q][2]], 0.25);
           pos.addScaledVector(this.geometry.vertices[this.quads[q][3]], 0.25);
 
-          this.boardPositions.push({ status: 0, neighbors: [], position: pos });
+          var newBoardPos = { status: 0, neighbors: [], position: pos };
+
+          for (var q2 in this.quads) {
+            var numSame = 0;
+            if (q === q2) {
+              continue;
+            }
+            for (var e in this.quads[q]) {
+              for (var e2 in this.quads[q2]) {
+                if (this.quads[q][e] === this.quads[q2][e2]) {
+                  numSame++;
+                }
+              }
+            }
+            if (numSame === 2) {
+              newBoardPos.neighbors.push(q2);
+            }
+          }
+          if (newBoardPos.neighbors.length !== 4) {
+            alert("TOO MANY NEIGHBORS!");
+          }
+          this.boardPositions.push(newBoardPos);
+
         }
 
         this.geometry.computeBoundingSphere();
 
         this.geometry.dynamic = true;
 
+        var lineMat = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 5});
+
+        for (var i = 0; i < w_seg; i++) {
+          var newLine = new THREE.Geometry();
+          for (var j = 0; j < h_seg; j++) {
+            newLine.vertices.push(this.geometry.vertices[i*w_seg+j]);
+          }
+          newLine.vertices.push(this.geometry.vertices[i*w_seg]);
+          this.w_lines.push(new THREE.Line(newLine, lineMat));
+        }
+        for (var i = 0; i < h_seg; i++) {
+          var newLine = new THREE.Geometry();
+          for (var j = 0; j < w_seg; j++) {
+            newLine.vertices.push(this.geometry.vertices[i + w_seg*j]);
+          }
+          newLine.vertices.push(this.geometry.vertices[i]);
+          this.h_lines.push(new THREE.Line(newLine, lineMat));
+        }
+
         this.mesh = new THREE.Mesh(this.geometry, boardMaterial);
-        this.edgesGeometry = new THREE.EdgesGeometry(this.geometry);
-        this.wireMesh = new THREE.Line(this.edgesGeometry, new THREE.LineBasicMaterial({color: 0x000000, linewidth: 2}));
-        this.mesh.position.set(0,0,0);       
+        this.mesh.position.set(0,0,0);
       }
 
       function twistTorus(torus, rad) {
@@ -143,6 +184,12 @@
         }
         
         torus.mesh.geometry.verticesNeedUpdate = true;
+        for (var i = 0; i < torus.params.w_seg; i++) {
+          torus.w_lines[i].geometry.verticesNeedUpdate = true;
+        }
+        for (var i = 0; i < torus.params.h_seg; i++) {
+          torus.h_lines[i].geometry.verticesNeedUpdate = true;
+        }
       }
     </script>
 
@@ -188,13 +235,17 @@
         whiteMaterial = new THREE.MeshPhongMaterial( { color: 0xdbdad6, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         blackMaterial = new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         // 
-        mytorus = new myTorus(100,50,19,19);
+        mytorus = new myTorus(100,50,9,9);
         console.log(mytorus.geometry.vertices.length);
         console.log(mytorus.geometry.faces.length);
         scene.add(mytorus.mesh);
-        //scene.add(mytorus.wireMesh);
-        //console.log(mytorus.wire.Meshgeometry.vertices.length);
 
+        for (var i = 0; i < mytorus.params.w_seg; i++) {
+          scene.add(mytorus.w_lines[i]);
+        }
+        for (var i = 0; i < mytorus.params.h_seg; i++) {
+          scene.add(mytorus.h_lines[i]);
+        }
         object = new THREE.SphereGeometry(5, 8, 6);
         ghostStone = new THREE.Mesh(object, new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} ));
         ghostStone.geometry.dynamic = true;
