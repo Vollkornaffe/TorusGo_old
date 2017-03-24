@@ -1,0 +1,48 @@
+<!DOCTYPE html> 
+<html> 
+    <head>
+        <meta charset=utf-8>
+        <title>Testing</title>
+        <style>
+            body { margin: 0; }
+            canvas { width: 100%; height: 100% }
+        </style>
+        <script src="js/three.js"></script>
+        <script src="js/Detector.js"></script>
+        <script src="js/libs/stats.min.js"></script>
+        <script src="js/generic_THREE_setup.js"></script>
+        <script src="js/custom_THREE_setup.js"></script>
+        <script src="js/game_logic.js"></script>
+        <script src="js/torus.js"></script>
+    </head>
+    <body>
+        <script>
+            if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+            var container, stats;
+            var camera, scene, renderer;
+            var cameraSettings = {
+                phi: 0,
+                rho: 0,
+                rad: 100
+            };
+            var mouse = new THREE.Vector2();
+            var clock = new THREE.Clock();
+
+            var torus_instance;
+
+            init();
+            animate();
+
+            function render() {
+                var delta = clock.getDelta();
+                var time = clock.getElapsedTime() * 10;
+                var timer = Date.now() * 0.0001;
+                camera.position.x = Math.cos( cameraSettings.rho ) * Math.cos( cameraSettings.phi ) * cameraSettings.rad;
+                camera.position.z = Math.cos( cameraSettings.rho ) * Math.sin( cameraSettings.phi ) * cameraSettings.rad;
+                camera.position.y = Math.sin( cameraSettings.rho) * cameraSettings.rad;
+                camera.lookAt( scene.position );
+                renderer.render( scene, camera );
+            }
+        </script>
+    </body>
+</html>

@@ -16,7 +16,6 @@
   <body>
 
     <script src="js/three.js"></script>
-
     <script src="js/Detector.js"></script>
     <script src="js/libs/stats.min.js"></script>
 
@@ -83,7 +82,6 @@
           }
         }
 
-        // gen board TODO: find neighbors
         for (var q in this.quads) {
           var pos = new THREE.Vector3(0,0,0);
           
@@ -110,11 +108,7 @@
               newBoardPos.neighbors.push(q2);
             }
           }
-          if (newBoardPos.neighbors.length !== 4) {
-            alert("TOO MANY NEIGHBORS!");
-          }
           this.boardPositions.push(newBoardPos);
-
         }
 
         this.geometry.computeBoundingSphere();
@@ -193,8 +187,6 @@
       }
     </script>
 
-
-
     <script>
       if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
       var container, stats;
@@ -235,7 +227,7 @@
         whiteMaterial = new THREE.MeshPhongMaterial( { color: 0xdbdad6, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         blackMaterial = new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 0 , side : THREE.DoubleSide} );
         // 
-        mytorus = new myTorus(100,50,9,9);
+        mytorus = new myTorus(100,50,3,3);
         console.log(mytorus.geometry.vertices.length);
         console.log(mytorus.geometry.faces.length);
         scene.add(mytorus.mesh);
