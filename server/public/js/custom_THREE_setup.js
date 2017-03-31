@@ -16,6 +16,16 @@ function onDocumentKeyDown( event ) {
         case 17:
             mouseMode = "camera";
             break;
+        case 38:
+            event.preventDefault();
+            if (cameraSettings.rad >= 1)
+                cameraSettings.rad -= 1;
+            break;
+        case 40:
+            event.preventDefault();
+            if (cameraSettings.rad <= 99)
+                cameraSettings.rad += 1;
+            break;
     }
 }
 
