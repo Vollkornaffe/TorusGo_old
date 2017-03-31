@@ -26,6 +26,7 @@
                 rad: 100
             };
             var mouse = new THREE.Vector2();
+            var mouseMode = "select";
             var clock = new THREE.Clock();
 
             var torus_instance;
@@ -37,11 +38,16 @@
                 var delta = clock.getDelta();
                 var time = clock.getElapsedTime() * 10;
                 var timer = Date.now() * 0.0001;
-                camera.position.x = Math.cos( cameraSettings.rho ) * Math.cos( cameraSettings.phi ) * cameraSettings.rad;
-                camera.position.z = Math.cos( cameraSettings.rho ) * Math.sin( cameraSettings.phi ) * cameraSettings.rad;
-                camera.position.y = Math.sin( cameraSettings.rho) * cameraSettings.rad;
-                camera.lookAt( scene.position );
+                if (mouseMode === "camera") {
+                    camera.position.x = Math.cos(cameraSettings.rho) * Math.cos(cameraSettings.phi) * cameraSettings.rad;
+                    camera.position.z = Math.cos(cameraSettings.rho) * Math.sin(cameraSettings.phi) * cameraSettings.rad;
+                    camera.position.y = Math.sin(cameraSettings.rho) * cameraSettings.rad;
+                }
+                camera.lookAt(scene.position);
                 renderer.render( scene, camera );
+
+                torus_instance.params.twist += 0.01;
+                torus_instance.updateTorus();
             }
         </script>
     </body>

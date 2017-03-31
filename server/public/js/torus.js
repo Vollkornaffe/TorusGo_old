@@ -7,12 +7,17 @@ function torus(radius, tube, h_seg, w_seg) {
         twist : 0
     };
 
+    // hardcoded line offset, only to avoid z-fighting
+    this.lineOffset = this.params.tube + this.params.tube / 100;
+
     // Indices for convinience
     this.quads = [];
 
     // Vectors
     this.offsets = [];
+    this.lineOffsets = [];
     this.positions = [];
+    this.linePositions = [];
 
     // Geometries
     this.geometry = new THREE.Geometry();
@@ -21,6 +26,7 @@ function torus(radius, tube, h_seg, w_seg) {
 
     this.calculateOffsets = function() {
         this.offsets = [];
+        this.lineOffsets = [];
         for (var i = 0; i < this.params.w_seg; i++) {
             var i_rad = i / this.params.w_seg * 2 * Math.PI + this.params.twist;
             var offset = new THREE.Vector3(
@@ -28,22 +34,34 @@ function torus(radius, tube, h_seg, w_seg) {
                 this.params.tube * Math.sin(i_rad),
                 0
             );
+            var lineOffset = new THREE.Vector3(
+                this.lineOffset * Math.cos(i_rad),
+                this.lineOffset * Math.sin(i_rad),
+                0
+            );
             this.offsets.push(offset);
+            this.lineOffsets.push(lineOffset);
         }
     };
 
     this.calculatePositions = function() {
         this.positions = [];
+        this.linePositions = [];
         var x_ax = new THREE.Vector3(1,0,0);
         var y_ax = new THREE.Vector3(0,1,0);
         for (var i = 0; i < this.params.w_seg; i++) {
             for (var j = 0; j < this.params.h_seg; j++) {
                 var j_rad = j / this.params.h_seg * 2 * Math.PI;
                 var newPos = new THREE.Vector3();
+                var newLinePos = new THREE.Vector3();
                 newPos.copy(this.offsets[i]);
+                newLinePos.copy(this.lineOffsets[i]);
                 newPos.addScaledVector(y_ax, this.params.radius);
                 newPos.applyAxisAngle(x_ax, j_rad);
+                newLinePos.addScaledVector(y_ax, this.params.radius);
+                newLinePos.applyAxisAngle(x_ax, j_rad);
                 this.positions.push(newPos);
+                this.linePositions.push(newLinePos);
             }
         }
     };
@@ -85,6 +103,28 @@ function torus(radius, tube, h_seg, w_seg) {
         }
         this.geometry.computeBoundingSphere();
         this.geometry.dynamic = true;
+
+        // lines
+        // TODO: need to set line geometry to dynamic aswell?
+        var lineMat = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 3});
+        for (var i = 0; i < this.params.w_seg; i++) {
+            var newLine = new THREE.Geometry();
+            var start_and_end = new THREE.Vector3();
+            newLine.vertices.push(start_and_end);
+            for (var j = 1; j < this.params.h_seg; j++)
+                newLine.vertices.push(new THREE.Vector3());
+            newLine.vertices.push(start_and_end);
+            this.w_lines.push(new THREE.Line(newLine, lineMat));
+        }
+        for (var i = 0; i < this.params.h_seg; i++) {
+            var newLine = new THREE.Geometry();
+            var start_and_end = new THREE.Vector3();
+            newLine.vertices.push(start_and_end);
+            for (var j = 1; j < this.params.w_seg; j++)
+                newLine.vertices.push(new THREE.Vector3());
+            newLine.vertices.push(start_and_end);
+            this.h_lines.push(new THREE.Line(newLine, lineMat));
+        }
     };
 
     this.positions_to_mesh = function() {
@@ -97,6 +137,24 @@ function torus(radius, tube, h_seg, w_seg) {
             }
         }
         this.mesh.geometry.verticesNeedUpdate = true;
+
+        // same for lines
+        vertexIndex = 0;
+        for (var i = 0; i < this.params.w_seg; i++) {
+            for (var j = 0; j < this.params.h_seg; j++) {
+                this.w_lines[i].geometry.vertices[j].copy(this.linePositions[vertexIndex]);
+                this.h_lines[j].geometry.vertices[i].copy(this.linePositions[vertexIndex]);
+                vertexIndex++;
+            }
+        }
+        this.w_lines.map(function(item) {item.geometry.verticesNeedUpdate = true; } );
+        this.h_lines.map(function(item) {item.geometry.verticesNeedUpdate = true; } );
+    };
+
+    this.updateTorus = function() {
+        this.calculateOffsets();
+        this.calculatePositions();
+        this.positions_to_mesh();
     };
 
     this.calculateOffsets();
