@@ -137,6 +137,7 @@ function torus(radius, tube, h_seg, w_seg) {
             }
         }
         this.mesh.geometry.verticesNeedUpdate = true;
+        this.geometry.computeBoundingSphere();
 
         // same for lines
         vertexIndex = 0;
@@ -160,6 +161,7 @@ function torus(radius, tube, h_seg, w_seg) {
     this.calculateOffsets();
     this.calculatePositions();
     this.init_geometry();
+
     this.mesh = new THREE.Mesh(
         this.geometry,
         new THREE.MeshPhongMaterial(
@@ -171,6 +173,8 @@ function torus(radius, tube, h_seg, w_seg) {
                 side : THREE.DoubleSide
             })
     );
+    this.mesh.position.set(0,0,0);
+
     this.positions_to_mesh();
 
     console.log("Created Torus");

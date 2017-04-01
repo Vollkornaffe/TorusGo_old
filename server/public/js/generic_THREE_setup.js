@@ -15,7 +15,7 @@ function init() {
     //
     object = new THREE.AxisHelper( 50 );
     object.position.set( 0, 0, 0 );
-    scene.add( object );
+    //scene.add( object );
     //
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );

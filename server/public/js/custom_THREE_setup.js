@@ -1,5 +1,5 @@
 function custom_init() {
-    torus_instance = new torus(10, 3, 13, 13);
+    torus_instance = new torus(10, 3, 3, 3);
     scene.add(torus_instance.mesh);
     torus_instance.w_lines.map(function(item) { scene.add(item) });
     torus_instance.h_lines.map(function(item) { scene.add(item) });
