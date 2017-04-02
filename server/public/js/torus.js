@@ -1,4 +1,4 @@
-function torus(radius, tube, h_seg, w_seg) {
+function Torus(radius, tube, h_seg, w_seg) {
     this.params = {
         radius : radius,
         tube : tube,
@@ -163,10 +163,13 @@ function torus(radius, tube, h_seg, w_seg) {
     this.get_quad_middle = function(id) {
         var middle = new THREE.Vector3(0,0,0);
 
-        middle.addScaledVector(this.geometry.vertices[this.quads[id][0]], 0.25);
-        middle.addScaledVector(this.geometry.vertices[this.quads[id][1]], 0.25);
-        middle.addScaledVector(this.geometry.vertices[this.quads[id][2]], 0.25);
-        middle.addScaledVector(this.geometry.vertices[this.quads[id][3]], 0.25);
+        var quad = this.quads[id];
+        var vertices = this.geometry.vertices;
+
+        middle.addScaledVector(vertices[quad[0]], 0.25);
+        middle.addScaledVector(vertices[quad[1]], 0.25);
+        middle.addScaledVector(vertices[quad[2]], 0.25);
+        middle.addScaledVector(vertices[quad[3]], 0.25);
 
         return middle;
     };
@@ -217,6 +220,18 @@ function torus(radius, tube, h_seg, w_seg) {
                         scene.remove(this.stone_meshes[i]);
                     this.stone_map[i] = 0;
             }
+        }
+    };
+
+    this.debug_highlight = function(pos_arr) {
+        for (var idx in pos_arr) {
+            var debug_stone = new THREE.Mesh(
+                new THREE.SphereGeometry( this.params.stone_size * 1.1, 10, 10 ),
+                new THREE.MeshPhongMaterial( { color: 0x33cc33 } )
+            );
+            var quad_middle = this.get_quad_middle(pos_arr[idx]);
+            debug_stone.position.copy(quad_middle);
+            scene.add(debug_stone);
         }
     };
 

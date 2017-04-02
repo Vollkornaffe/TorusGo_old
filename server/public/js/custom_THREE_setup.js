@@ -1,5 +1,5 @@
 function custom_init_threejs() {
-    torus_instance = new torus(20, 3, 19, 13);
+    torus_instance = new Torus(20, 10, 19, 19);
     scene.add(torus_instance.mesh);
     torus_instance.w_lines.map(function(item) { scene.add(item) });
     torus_instance.h_lines.map(function(item) { scene.add(item) });

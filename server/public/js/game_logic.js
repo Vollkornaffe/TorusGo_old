@@ -12,13 +12,13 @@ function game_logic(width, height)
 
     function board_position(x,y) // Neighbors: up down left right
     {
-        this.pos = x*width + y;
+        this.pos = x*height + y;
         this.status = 0;
         this.neighbors = [];
-        this.neighbors.push(((x + 1 > width - 1) ? 0 : x + 1)*width + y);
-        this.neighbors.push(((x - 1 < 0) ? width - 1 : x - 1)*width + y);
-        this.neighbors.push(x*width + ((y - 1 < 0) ? height - 1 : y - 1));
-        this.neighbors.push(x*width + ((y + 1 > height - 1) ? 0 : y + 1));
+        this.neighbors.push(((x + 1 > width - 1) ? 0 : x + 1)*height + y);
+        this.neighbors.push(((x - 1 < 0) ? width - 1 : x - 1)*height + y);
+        this.neighbors.push(x*height + ((y - 1 < 0) ? height - 1 : y - 1));
+        this.neighbors.push(x*height + ((y + 1 > height - 1) ? 0 : y + 1));
 
         return this;
     }
@@ -107,10 +107,45 @@ function game_logic(width, height)
         return res;
     };
 
+    this.move_legal = function(selected_position)
+    {
+        if (selected_position.status === 0)
+            return true;
+        return false;
+    };
+
+
+    this.kill_neighbors = function(selected_position) // assuming that the move doesn't kill own stones..
+    {
+        var this_ref = this;
+        for (var n_id in selected_position.neighbors) {
+            var neighbor = this.positions[selected_position.neighbors[n_id]];
+            if (neighbor.status !== current_player * -1)
+                continue;
+            if (this.free_deep(neighbor).length === 1)
+                this.group(neighbor).map(
+                    function(group_member_id) {
+                        this_ref.positions[group_member_id].status = 0;
+                    }
+                );
+        }
+    };
+
     this.make_move = function () {
         if (currentSelection === -1)
             return;
-        this.positions[currentSelection].status = 1;
+
+        console.log("Making move at ", currentSelection);
+
+        var selected_position = this.positions[currentSelection];
+        if (this.move_legal(selected_position)) {
+            this.kill_neighbors(selected_position);
+
+            selected_position.status = current_player;
+            current_player *= -1;
+        } else {
+            alert("Illegal Move!");
+        }
     };
 
     console.log("Created GameLogic")
