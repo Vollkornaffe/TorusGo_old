@@ -34,8 +34,11 @@
 
             var torus_instance;
 
-            init();
+
+            init_threejs();
             animate();
+
+            var game_logic_instance = new game_logic(torus_instance.params.w_seg, torus_instance.params.h_seg);
 
             function render() {
                 var delta = clock.getDelta();

@@ -1,4 +1,4 @@
-function init() {
+function init_threejs() {
     container = document.createElement( 'div' );
     document.body.appendChild( container );
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
@@ -30,7 +30,7 @@ function init() {
     document.addEventListener( 'keydown', onDocumentKeyDown, false);
     document.addEventListener( 'keyup', onDocumentKeyUp, false);
 
-    custom_init();
+    custom_init_threejs();
 }
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;

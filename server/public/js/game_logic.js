@@ -107,5 +107,9 @@ function game_logic(width, height)
         return res;
     };
 
+    this.make_move = function () {
+        this.positions[currentSelection].status = 1;
+    };
+
     return this;
 }

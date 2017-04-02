@@ -158,6 +158,19 @@ function torus(radius, tube, h_seg, w_seg) {
         this.positions_to_mesh();
     };
 
+    this.updateTorus_with_gameLogic = function(game_logic_instance) {
+        for (var i in game_logic_instance.positions) {
+            switch (game_logic_instance.positions[i].status) {
+                case 1:
+                    break;
+                case -1:
+                    break;
+                case 0:
+                    break;
+            }
+        }
+    };
+
     this.calculateOffsets();
     this.calculatePositions();
     this.init_geometry();

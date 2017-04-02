@@ -1,4 +1,4 @@
-function custom_init() {
+function custom_init_threejs() {
     torus_instance = new torus(10, 3, 3, 3);
     scene.add(torus_instance.mesh);
     torus_instance.w_lines.map(function(item) { scene.add(item) });
@@ -9,6 +9,7 @@ function custom_init() {
     camera.position.y = Math.sin(cameraSettings.rho) * cameraSettings.rad;
 }
 function onDocumentMouseDown( event ) {
+    game_logic_instance.make_move();
 }
 
 function onDocumentKeyDown( event ) {
