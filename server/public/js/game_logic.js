@@ -108,8 +108,11 @@ function game_logic(width, height)
     };
 
     this.make_move = function () {
+        if (currentSelection === -1)
+            return;
         this.positions[currentSelection].status = 1;
     };
 
+    console.log("Created GameLogic")
     return this;
 }

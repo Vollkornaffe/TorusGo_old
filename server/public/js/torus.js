@@ -4,7 +4,8 @@ function torus(radius, tube, h_seg, w_seg) {
         tube : tube,
         h_seg : h_seg,
         w_seg : w_seg,
-        twist : 0
+        twist : 0,
+        stone_size: 0.5
     };
 
     // hardcoded line offset, only to avoid z-fighting
@@ -152,21 +153,69 @@ function torus(radius, tube, h_seg, w_seg) {
         this.h_lines.map(function(item) {item.geometry.verticesNeedUpdate = true; } );
     };
 
-    this.updateTorus = function() {
+    this.updateTorus = function(game_logic) {
         this.calculateOffsets();
         this.calculatePositions();
         this.positions_to_mesh();
+        this.updateTorus_with_gameLogic(game_logic);
     };
 
-    this.updateTorus_with_gameLogic = function(game_logic_instance) {
-        for (var i in game_logic_instance.positions) {
-            switch (game_logic_instance.positions[i].status) {
+    this.get_quad_middle = function(id) {
+        var middle = new THREE.Vector3(0,0,0);
+
+        middle.addScaledVector(this.geometry.vertices[this.quads[id][0]], 0.25);
+        middle.addScaledVector(this.geometry.vertices[this.quads[id][1]], 0.25);
+        middle.addScaledVector(this.geometry.vertices[this.quads[id][2]], 0.25);
+        middle.addScaledVector(this.geometry.vertices[this.quads[id][3]], 0.25);
+
+        return middle;
+    };
+
+    this.white_mat = new THREE.MeshPhongMaterial( { color: 0xdbdad6, shading: THREE.FlatShading, overdraw: 0.5, shininess: 1 , side : THREE.DoubleSide} );
+    this.black_mat = new THREE.MeshPhongMaterial( { color: 0x20201d, shading: THREE.FlatShading, overdraw: 0.5, shininess: 1 , side : THREE.DoubleSide} );
+
+    this.stone_map = [];
+    this.init_stone_map = function () {
+        for (var i = 0; i < this.params.h_seg * this.params.w_seg; i++)
+            this.stone_map.push(0);
+    };
+    this.stone_meshes = [];
+
+    this.updateTorus_with_gameLogic = function(game_logic) {
+        for (var i in game_logic.positions) {
+            switch (game_logic.positions[i].status) {
                 case 1:
+                    if (this.stone_map[i] !== 1) {
+                        if (this.stone_map[i] !== 0)
+                            scene.remove(this.stone_meshes[i]);
+                        this.stone_meshes[i] = new THREE.Mesh(
+                            new THREE.SphereGeometry( this.params.stone_size, 10, 10 ),
+                            this.white_mat
+                        );
+                        this.stone_meshes[i].position.copy(this.get_quad_middle(i));
+                        scene.add(this.stone_meshes[i]);
+                        this.stone_map[i] = 1;
+                    }
+                    this.stone_meshes[i].position.copy(this.get_quad_middle(i));
                     break;
                 case -1:
+                    if (this.stone_map[i] !== -1) {
+                        if (this.stone_map[i] !== 0)
+                            scene.remove(this.stone_meshes[i]);
+                        this.stone_meshes[i] = new THREE.Mesh(
+                            new THREE.SphereGeometry( this.params.stone_size, 10, 10 ),
+                            this.black_mat
+                        );
+                        this.stone_meshes[i].position.copy(this.get_quad_middle(i));
+                        scene.add(this.stone_meshes[i]);
+                        this.stone_map[i] = -1;
+                    }
+                    this.stone_meshes[i].position.copy(this.get_quad_middle(i));
                     break;
                 case 0:
-                    break;
+                    if (this.stone_map[i] !== 0)
+                        scene.remove(this.stone_meshes[i]);
+                    this.stone_map[i] = 0;
             }
         }
     };
@@ -174,6 +223,7 @@ function torus(radius, tube, h_seg, w_seg) {
     this.calculateOffsets();
     this.calculatePositions();
     this.init_geometry();
+    this.init_stone_map();
 
     this.mesh = new THREE.Mesh(
         this.geometry,

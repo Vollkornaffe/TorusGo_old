@@ -22,6 +22,7 @@
             var container, stats;
             var camera, scene, renderer;
             var cameraSettings = {
+                unscaled_pos: new THREE.Vector3(1,0,0),
                 phi: 0,
                 rho: 0,
                 rad: 50
@@ -33,6 +34,7 @@
             var clock = new THREE.Clock();
 
             var torus_instance;
+            var selection_stone;
 
 
             init_threejs();
@@ -48,22 +50,31 @@
                     case "camera":
                         cameraSettings.phi = mouse.x * 4;
                         cameraSettings.rho = -mouse.y;
-                        camera.position.x = Math.cos(cameraSettings.rho) * Math.cos(cameraSettings.phi) * cameraSettings.rad;
-                        camera.position.z = Math.cos(cameraSettings.rho) * Math.sin(cameraSettings.phi) * cameraSettings.rad;
-                        camera.position.y = Math.sin(cameraSettings.rho) * cameraSettings.rad;
+                        cameraSettings.unscaled_pos.x = Math.cos(cameraSettings.rho) * Math.cos(cameraSettings.phi);
+                        cameraSettings.unscaled_pos.z = Math.cos(cameraSettings.rho) * Math.sin(cameraSettings.phi);
+                        cameraSettings.unscaled_pos.y = Math.sin(cameraSettings.rho);
                         break;
                     case "select":
                         currentSelection = getSelectedPos(raycaster, torus_instance.mesh, mouse, camera);
                         break;
                 }
 
-                console.log(currentSelection);
+                if (currentSelection !== -1) {
+                    selection_stone.position.copy(torus_instance.get_quad_middle(currentSelection));
+                } else {
+                    selection_stone.position.set(0,0,0);
+                }
+
+                //console.log(currentSelection);
                 //console.log(mouse);
 
+                camera.position.copy(cameraSettings.unscaled_pos);
+                camera.position.multiplyScalar(cameraSettings.rad);
                 camera.lookAt(scene.position);
                 renderer.render( scene, camera );
 
-                torus_instance.updateTorus();
+                if (torus_instance && game_logic_instance)
+                    torus_instance.updateTorus(game_logic_instance);
             }
         </script>
     </body>
