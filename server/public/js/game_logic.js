@@ -37,6 +37,12 @@ function game_logic(width, height)
             return this.positions[pos[0]*width + pos[1]];
         return null;
     };
+    this.to_coords = function(pos) {
+        return [
+            Math.floor(pos/width),
+            pos - Math.floor(pos/width) * width
+        ];
+    };
     this.free_flat = function(bp) // Find direct freedoms
     {
         var res = [];
@@ -109,9 +115,14 @@ function game_logic(width, height)
 
     this.move_legal = function(selected_position)
     {
-        if (selected_position.status === 0)
-            return true;
-        return false;
+        if (selected_position.status !== 0)
+            return false;
+        selected_position.status = current_player;
+        if (this.free_deep(selected_position).length === 0) {
+            selected_position.status = 0;
+            return false;
+        }
+        return true;
     };
 
 
@@ -135,16 +146,16 @@ function game_logic(width, height)
         if (currentSelection === -1)
             return;
 
-        console.log("Making move at ", currentSelection);
+        console.log("Making move at ", this.to_coords(currentSelection));
 
         var selected_position = this.positions[currentSelection];
+        this.kill_neighbors(selected_position);
         if (this.move_legal(selected_position)) {
-            this.kill_neighbors(selected_position);
-
-            selected_position.status = current_player;
             current_player *= -1;
+            return true;
         } else {
             alert("Illegal Move!");
+            return false;
         }
     };
 
