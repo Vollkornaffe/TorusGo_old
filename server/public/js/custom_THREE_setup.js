@@ -27,7 +27,7 @@ function onDocumentKeyDown( event ) {
             break;
         case 37:
             event.preventDefault();
-            torus_instance.params.twist -= 0.1;
+            torus_instance.params.twist -= 0.05;
             break;
         case 38:
             event.preventDefault();
@@ -36,11 +36,11 @@ function onDocumentKeyDown( event ) {
             break;
         case 39:
             event.preventDefault();
-            torus_instance.params.twist += 0.1;
+            torus_instance.params.twist += 0.05;
             break;
         case 40:
             event.preventDefault();
-            if (cameraSettings.rad <= 99)
+            if (cameraSettings.rad <= 999)
                 cameraSettings.rad += 1;
             break;
     }

@@ -19,6 +19,7 @@ function Torus(radius, tube, h_seg, w_seg) {
     this.lineOffsets = [];
     this.positions = [];
     this.linePositions = [];
+    this.rotatedVectors = [];
 
     // Geometries
     this.geometry = new THREE.Geometry();
@@ -63,6 +64,21 @@ function Torus(radius, tube, h_seg, w_seg) {
                 newLinePos.applyAxisAngle(x_ax, j_rad);
                 this.positions.push(newPos);
                 this.linePositions.push(newLinePos);
+            }
+        }
+    };
+
+    this.calculateRotatedVectors = function() {
+        this.rotatedVectors = [];
+        var x_ax = new THREE.Vector3(1,0,0);
+        for (var i = 0; i < this.params.w_seg; i++) {
+            var i_rad = i / this.params.w_seg * 2 * Math.PI + this.params.twist;
+            for (var j = 0; j < this.params.h_seg; j++) {
+                var j_rad = j / this.params.h_seg * 2 * Math.PI;
+
+                var rotated_vec = new THREE.Vector3( Math.cos(i_rad), Math.sin(i_rad), 0);
+                rotated_vec.applyAxisAngle(x_ax, j_rad);
+                this.rotatedVectors.push(rotated_vec);
             }
         }
     };
@@ -156,6 +172,7 @@ function Torus(radius, tube, h_seg, w_seg) {
     this.updateTorus = function(game_logic) {
         this.calculateOffsets();
         this.calculatePositions();
+        this.calculateRotatedVectors();
         this.positions_to_mesh();
         this.updateTorus_with_gameLogic(game_logic);
     };
@@ -184,40 +201,53 @@ function Torus(radius, tube, h_seg, w_seg) {
     };
     this.stone_meshes = [];
 
+    this.get_stone_geometry = function(id) {
+        var quad = this.quads[id];
+        var torus_vertices = this.geometry.vertices;
+        var result = new THREE.Geometry();
+
+        var stone_spike = this.get_quad_middle(id);
+        stone_spike.addScaledVector(this.rotatedVectors[quad[0]], this.params.stone_size);
+        stone_spike.addScaledVector(this.rotatedVectors[quad[1]], this.params.stone_size);
+        stone_spike.addScaledVector(this.rotatedVectors[quad[2]], this.params.stone_size);
+        stone_spike.addScaledVector(this.rotatedVectors[quad[3]], this.params.stone_size);
+
+        result.vertices.push(stone_spike);
+        result.vertices.push(torus_vertices[quad[0]]);
+        result.vertices.push(torus_vertices[quad[1]]);
+        result.vertices.push(torus_vertices[quad[2]]);
+        result.vertices.push(torus_vertices[quad[3]]);
+
+        result.faces.push(new THREE.Face3(0,1,2));
+        result.faces.push(new THREE.Face3(0,1,3));
+        result.faces.push(new THREE.Face3(0,3,4));
+        result.faces.push(new THREE.Face3(0,4,2));
+
+        return result;
+    };
+
     this.updateTorus_with_gameLogic = function(game_logic) {
         for (var i in game_logic.positions) {
+            if (this.stone_map[i] !== 0)
+                scene.remove(this.stone_meshes[i]);
             switch (game_logic.positions[i].status) {
                 case 1:
-                    if (this.stone_map[i] !== 1) {
-                        if (this.stone_map[i] !== 0)
-                            scene.remove(this.stone_meshes[i]);
-                        this.stone_meshes[i] = new THREE.Mesh(
-                            new THREE.SphereGeometry( this.params.stone_size, 10, 10 ),
-                            this.white_mat
-                        );
-                        this.stone_meshes[i].position.copy(this.get_quad_middle(i));
-                        scene.add(this.stone_meshes[i]);
-                        this.stone_map[i] = 1;
-                    }
-                    this.stone_meshes[i].position.copy(this.get_quad_middle(i));
+                    this.stone_meshes[i] = new THREE.Mesh(
+                        this.get_stone_geometry(i),
+                        this.white_mat
+                    );
+                    scene.add(this.stone_meshes[i]);
+                    this.stone_map[i] = 1;
                     break;
                 case -1:
-                    if (this.stone_map[i] !== -1) {
-                        if (this.stone_map[i] !== 0)
-                            scene.remove(this.stone_meshes[i]);
-                        this.stone_meshes[i] = new THREE.Mesh(
-                            new THREE.SphereGeometry( this.params.stone_size, 10, 10 ),
-                            this.black_mat
-                        );
-                        this.stone_meshes[i].position.copy(this.get_quad_middle(i));
-                        scene.add(this.stone_meshes[i]);
-                        this.stone_map[i] = -1;
-                    }
-                    this.stone_meshes[i].position.copy(this.get_quad_middle(i));
+                    this.stone_meshes[i] = new THREE.Mesh(
+                        this.get_stone_geometry(i),
+                        this.black_mat
+                    );
+                    scene.add(this.stone_meshes[i]);
+                    this.stone_map[i] = -1;
                     break;
                 case 0:
-                    if (this.stone_map[i] !== 0)
-                        scene.remove(this.stone_meshes[i]);
                     this.stone_map[i] = 0;
             }
         }
