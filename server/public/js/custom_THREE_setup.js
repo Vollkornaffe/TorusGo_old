@@ -15,7 +15,9 @@ function custom_init_threejs() {
 }
 
 function onDocumentMouseDown( event ) {
-    game_logic_instance.make_move();
+    if (game_logic_instance.make_move()) {
+
+    }
 }
 
 function onDocumentKeyDown( event ) {
