@@ -228,7 +228,7 @@ function Torus(radius, tube, h_seg, w_seg) {
     this.updateTorus_with_gameLogic = function(game_logic) {
         for (var i in game_logic.positions) {
             if (this.stone_map[i].last_status !== 0)
-                scene.remove(this.stone_meshes[i].mesh);
+                scene.remove(this.stone_map[i].mesh);
             switch (game_logic.positions[i].status) {
                 case 1:
                     this.stone_map[i].mesh = new THREE.Mesh(
