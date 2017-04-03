@@ -227,6 +227,7 @@ function Torus(radius, tube, h_seg, w_seg) {
     };
 
     this.updateTorus_with_gameLogic = function(game_logic) {
+        this.stone_meshes = [];
         for (var i in game_logic.positions) {
             if (this.stone_map[i] !== 0)
                 scene.remove(this.stone_meshes[i]);
