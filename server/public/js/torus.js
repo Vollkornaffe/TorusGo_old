@@ -197,9 +197,8 @@ function Torus(radius, tube, h_seg, w_seg) {
     this.stone_map = [];
     this.init_stone_map = function () {
         for (var i = 0; i < this.params.h_seg * this.params.w_seg; i++)
-            this.stone_map.push(0);
+            this.stone_map.push({'last_status': 0, 'mesh': null});
     };
-    this.stone_meshes = [];
 
     this.get_stone_geometry = function(id) {
         var quad = this.quads[id];
@@ -227,29 +226,28 @@ function Torus(radius, tube, h_seg, w_seg) {
     };
 
     this.updateTorus_with_gameLogic = function(game_logic) {
-        this.stone_meshes = [];
         for (var i in game_logic.positions) {
-            if (this.stone_map[i] !== 0)
-                scene.remove(this.stone_meshes[i]);
+            if (this.stone_map[i].last_status !== 0)
+                scene.remove(this.stone_meshes[i].mesh);
             switch (game_logic.positions[i].status) {
                 case 1:
-                    this.stone_meshes[i] = new THREE.Mesh(
+                    this.stone_map[i].mesh = new THREE.Mesh(
                         this.get_stone_geometry(i),
                         this.white_mat
                     );
-                    scene.add(this.stone_meshes[i]);
-                    this.stone_map[i] = 1;
+                    scene.add(this.stone_map[i].mesh);
+                    this.stone_map[i].last_status = 1;
                     break;
                 case -1:
-                    this.stone_meshes[i] = new THREE.Mesh(
+                    this.stone_map[i].mesh = new THREE.Mesh(
                         this.get_stone_geometry(i),
                         this.black_mat
                     );
-                    scene.add(this.stone_meshes[i]);
-                    this.stone_map[i] = -1;
+                    scene.add(this.stone_map[i].mesh);
+                    this.stone_map[i].last_status = -1;
                     break;
                 case 0:
-                    this.stone_map[i] = 0;
+                    this.stone_map[i].last_status = 0;
             }
         }
     };
