@@ -25,6 +25,7 @@ socket.on('error to client', function(err_msg) {
 });
 
 socket.on('reset state', function() {
+    alert('new game');
     game_logic_instance.reset();
 });
 

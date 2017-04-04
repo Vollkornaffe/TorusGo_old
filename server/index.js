@@ -117,6 +117,13 @@ io.on('connection', function(socket){
     socket.on('take role', function(role) {
         if ( socket.room !== 'default') {
             var current_room = socket_rooms[socket.room];
+
+            if (!current_room) {
+                socket.emit('error to client', 'unexplained error...');
+                return;
+            }
+
+
             switch (role) {
                 case 'spectate':
                     if (current_room.white === socket.username) {
@@ -171,6 +178,11 @@ io.on('connection', function(socket){
         console.log('registered disconnection of' , socket.username);
 
         var current_room = socket_rooms[socket.room];
+
+        if (!current_room) {
+            socket.emit('error to client', 'unexplained error...');
+            return;
+        }
 
         if (current_room.black === socket.username) {
             socket.broadcast.to(socket.room).emit('success', 'black is now open');
