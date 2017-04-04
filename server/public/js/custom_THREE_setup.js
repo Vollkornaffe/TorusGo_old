@@ -15,8 +15,19 @@ function custom_init_threejs() {
 }
 
 function onDocumentMouseDown( event ) {
-    if (game_logic_instance.make_move()) {
+    if (game_role === 'spectator') return;
+    if (game_role !== 'both' && game_role === 'black' && current_player !== -1) return;
+    if (game_role !== 'both' && game_role === 'white' && current_player !== 1) return;
 
+    if (game_logic_instance.make_move()) {
+        var move_num = game_logic_instance.move_num-1;
+        var serialized_state = JSON.stringify(
+            game_logic_instance.positions.map(function(pos) {
+                return {'pos': pos.pos, 'status': pos.status };
+            })
+        );
+
+        send_game_state(move_num, serialized_state);
     }
 }
 

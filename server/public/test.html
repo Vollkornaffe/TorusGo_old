@@ -6,6 +6,11 @@
         <style>
             body { margin: 0; }
             canvas { width: 100%; height: 100% }
+            #ui {
+                position: absolute;
+                top: 10px;
+                right: 50%;
+            }
         </style>
 
         <script src="js/libs/socket.io.js"></script>
@@ -19,8 +24,38 @@
         <script src="js/torus.js"></script>
         <script src="js/mouseOver.js"></script>
         <script src="js/server_communication.js"></script>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     </head>
     <body>
+        <div id="ui">
+            <div class="dropdown" style="float: left">
+                <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Room
+                    <span class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">default</a></li>
+                    <li role="presentation" class="divider"></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 0</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 1</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 2</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 3</a></li>
+                </ul>
+            </div>
+            <div class="dropdown" style="float: right">
+                <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Role
+                    <span class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">spectate</a></li>
+                    <li role="presentation" class="divider"></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">black</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">white</a></li>
+                </ul>
+            </div>
+        </div>
+
         <script>
             if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
             var container, stats;
@@ -46,6 +81,7 @@
             init_threejs();
             animate();
 
+            var game_role = 'spectator';
             var game_logic_instance = new game_logic(torus_instance.params.w_seg, torus_instance.params.h_seg);
 
             function render() {

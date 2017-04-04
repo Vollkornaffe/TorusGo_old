@@ -8,6 +8,7 @@ function contains(arr, ele)
 
 function game_logic(width, height)
 {
+    this.move_num = 0;
     this.positions = [];
 
     function board_position(x,y) // Neighbors: up down left right
@@ -37,12 +38,14 @@ function game_logic(width, height)
             return this.positions[pos[0]*width + pos[1]];
         return null;
     };
+
     this.to_coords = function(pos) {
         return [
             Math.floor(pos/width),
             pos - Math.floor(pos/width) * width
         ];
     };
+
     this.free_flat = function(bp) // Find direct freedoms
     {
         var res = [];
@@ -51,6 +54,7 @@ function game_logic(width, height)
                 res.push(bp.neighbors[i]);
         return res;
     };
+
     this.free_deep = function(bp) // Find direct & indirect freedoms
     {
         if (bp.status === 0)
@@ -81,6 +85,7 @@ function game_logic(width, height)
         }
         return res;
     };
+
     this.group = function(bp) // Find group
     {
         if (bp.status === 0)
@@ -125,7 +130,6 @@ function game_logic(width, height)
         return true;
     };
 
-
     this.kill_neighbors = function(selected_position) // assuming that the move doesn't kill own stones..
     {
         var this_ref = this;
@@ -152,11 +156,39 @@ function game_logic(width, height)
         this.kill_neighbors(selected_position);
         if (this.move_legal(selected_position)) {
             current_player *= -1;
+            this.move_num++;
             return true;
         } else {
             alert("Illegal Move!");
             return false;
         }
+    };
+
+    this.update_from_server = function (move_num, serialized_state) {
+        var parsed_move_num = parseInt(move_num);
+        var parsed_state = JSON.parse(serialized_state);
+
+        if (parsed_move_num % 2 === 0) {
+            current_player = 1;
+        } else {
+            current_player = -1;
+        }
+        game_logic_instance.move_num = parsed_move_num + 1;
+
+        for (var i in parsed_state) {
+            if (this.positions[i].pos !== parsed_state[i].pos) {
+                alert('failed to update state');
+                return;
+            }
+            this.positions[i].status = parsed_state[i].status;
+        }
+    };
+
+    this.reset = function() {
+        this.positions.map(function(pos) {
+            pos.status = 0;
+        });
+        this.move_num = 0;
     };
 
     console.log("Created GameLogic")
