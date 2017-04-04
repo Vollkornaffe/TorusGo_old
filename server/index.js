@@ -104,9 +104,9 @@ io.on('connection', function(socket){
 
         console.log(socket.username, 'joined room', socket.room);
         socket.emit('enter room',
-            socket_rooms.move_num,
-            socket_rooms.black,
-            socket_rooms.white);
+            socket_rooms[socket.room].move_num,
+            socket_rooms[socket.room].black,
+            socket_rooms[socket.room].white);
     });
 
     socket.on('request room list', function () {
