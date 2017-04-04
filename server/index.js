@@ -36,13 +36,14 @@ function new_room() {
             [this.db_id, move_num, serialized_state],
             function (err) { if (err) throw err; });
     };
-    this.get_state = function (move_num) {
-        db.get("SELECT STATE FROM state_table " +
+    this.get_state = function (move_num, callback) {
+        db.get(
+            "SELECT STATE FROM state_table " +
             "WHERE ID = ? AND MOVE = ?",
             [this.db_id, move_num],
             function (err, row) {
                 if (err) throw err;
-                console.log(JSON.stringify(row));
+                callback(row.STATE);
             }
         );
     };
@@ -192,7 +193,15 @@ io.on('connection', function(socket){
             if (current_room.move_num === 0) {
                 socket.emit('reset state');
             } else {
-                current_room.get_state(current_room.move_num - 1);
+                current_room.get_state(
+                    current_room.move_num - 1,
+                    function(serialized_state) {
+                        socket.emit('game state update',
+                            current_room.move_num - 1,
+                            serialized_state
+                        );
+                    }
+                );
             }
         } else {
             socket.emit('reset state');

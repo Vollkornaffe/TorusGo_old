@@ -24,8 +24,12 @@ socket.on('error to client', function(err_msg) {
     console.log(err_msg);
 });
 
-socket.on('reset', function() {
+socket.on('reset state', function() {
     game_logic_instance.reset();
+});
+
+socket.on('enter room', function(move_num, black_player, white_player) {
+    socket.emit('request game state');
 });
 
 socket.on('success', function(suc_msg) {
