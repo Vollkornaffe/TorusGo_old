@@ -61,7 +61,7 @@ db.run(
     "STATE varchar," +
     "PRIMARY KEY (ID, MOVE))", function (err) { if (err) throw err; });
 
-app.get('*', function(req, res) {
+app.get('/', function(req, res) {
     console.log('someone noticed!');
 
     res.redirect('/test.html');
