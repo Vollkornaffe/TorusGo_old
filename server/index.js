@@ -61,6 +61,12 @@ db.run(
     "STATE varchar," +
     "PRIMARY KEY (ID, MOVE))", function (err) { if (err) throw err; });
 
+app.get('*', function(req, res, next) {
+    var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    console.log(fullUrl);
+    next();
+});
+
 app.get('/', function(req, res) {
     console.log('someone noticed!');
 
