@@ -5,7 +5,7 @@ var io = require('socket.io')(http);
 var sqlite3 = require('sqlite3').verbose();
 var promise = require('bluebird');
 
-app.use(express.static(__dirname + 'public'));
+app.use(express.static(__dirname + '/public'));
 
 var usernames = {};
 var socket_rooms = { 'default': {} };
@@ -264,6 +264,7 @@ io.on('connection', function(socket){
 
 http.listen(8000, function() {
     console.log("Server listening on port 8000")
+    console.log("exposing content of", __dirname + '/public');
 });
 
 process.on('SIGINT', function() {
