@@ -5,7 +5,7 @@ var io = require('socket.io')(http);
 var sqlite3 = require('sqlite3').verbose();
 var promise = require('bluebird');
 
-app.use(express.static('public'));
+app.use(express.static(__dirname + 'public'));
 
 var usernames = {};
 var socket_rooms = { 'default': {} };
