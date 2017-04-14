@@ -6,10 +6,58 @@
         <style>
             body { margin: 0; }
             canvas { width: 100%; height: 100% }
-            #ui {
+            #ui_left {
                 position: absolute;
                 top: 10px;
-                right: 10%;
+                left: 10px;
+                width: 25vw;
+                height: 90vh;
+                border:10px solid white;
+            }
+            #ui_right {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 25vw;
+                height: 90vh;
+                border:10px solid white;
+            }
+            .btn-primary {
+                height: 40px;
+                width: calc((25vw - 20px)/2);
+            }
+            #game_control {
+                height: 80px;
+            }
+            #room_info {
+                -webkit-flex: 1 1 auto;
+                overflow-y: auto;
+                height: calc(90vh - 20px - 40px - 40px);
+            }
+            #chat-input {
+                width: calc(25vw - 20px);
+                height: 32px;
+            }
+            #messages {
+                -webkit-flex: 1 1 auto;
+                overflow-y: scroll;
+                height: calc(90vh - 52px);
+            }
+            table, th, td {
+                border-bottom: 2px solid white;
+                border-top: 2px solid white;
+                border-collapse: collapse;
+                margin-left: 5px;
+                margin-right: 5px;
+            }
+            tr {
+                height: 32px;
+            }
+            .th_room_info_general {
+                width: calc((25vw - 20px)/3);
+            }
+            .th_room_info_users {
+                width: calc(25vw - 20px);
             }
         </style>
 
@@ -31,28 +79,81 @@
 
     </head>
     <body>
-        <div id="ui">
-            <div class="dropdown" style="float: left">
-                <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Room
-                    <span class="caret"></span></button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">default</a></li>
-                    <li role="presentation" class="divider"></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 0</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 1</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 2</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 3</a></li>
-                </ul>
+        <div id="ui_left">
+            <div id="game_control">
+                <div class="dropdown" style="float: left">
+                    <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Room
+                        <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">default</a></li>
+                        <li role="presentation" class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 0</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 1</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 2</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 3</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown" style="float: left">
+                    <button class="btn btn-primary dropdown-toggle" id="menu2" type="button" data-toggle="dropdown">Role
+                        <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">spectate</a></li>
+                        <li role="presentation" class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">black</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">white</a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="dropdown" style="float: right">
-                <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Role
-                    <span class="caret"></span></button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">spectate</a></li>
-                    <li role="presentation" class="divider"></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">black</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">white</a></li>
-                </ul>
+            <div id="room_info">
+                <table>
+                    <tr>
+                        <th class="th_room_info_general">Move Nr.</th>
+                        <th class="th_room_info_general">Black</th>
+                        <th class="th_room_info_general">White</th>
+                    </tr>
+                    <tr>
+                        <td id="room_info_move_num">NONE</td>
+                        <td id="room_info_black">NONE</td>
+                        <td id="room_info_white">NONE</td>
+                    </tr>
+                </table>
+                <div id="room_info_users">
+                    <table>
+                        <tr>
+                            <th class="th_room_info_users">Users in this room</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        <script>
+            var n = 0;
+            setInterval(function() {
+                var e = document.getElementById("messages_ul");
+                var newPoint = document.createElement('li');
+                newPoint.innerHTML = n.toString();
+                e.insertBefore(newPoint, e.firstChild);
+                n++;
+            },1000);
+        </script>
+        <div id="ui_right">
+            <div id="text window" >
+                <input id="chat-input" type="text"></input>
+                <div id="messages">
+                    <ul id="messages_ul" type="square">
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                        <li>asdf</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
