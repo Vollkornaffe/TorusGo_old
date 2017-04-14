@@ -21,8 +21,8 @@ function init_threejs() {
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     container.appendChild( renderer.domElement );
-    stats = new Stats();
-    container.appendChild( stats.dom );
+    //stats = new Stats();
+    //container.appendChild( stats.dom );
     //
     window.addEventListener( 'resize', onWindowResize, false );
     document.addEventListener( 'mousemove', onDocumentMouseMove, false);
@@ -45,5 +45,5 @@ function onDocumentMouseMove( event ) {
 function animate() {
     requestAnimationFrame( animate );
     render();
-    stats.update();
+    //stats.update();
 }
