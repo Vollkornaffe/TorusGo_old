@@ -1,11 +1,11 @@
 function Custom_socket_io() {
     var socket = io();
 
-    socket.on('connect', register);
+    socket.on('connect', this.register);
 
     socket.on('username taken', function () {
         console.log('username is occupied');
-        register();
+        this.register();
     });
 
     socket.on('game state update', function (move_num, serialized_state) {
