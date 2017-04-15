@@ -72,6 +72,7 @@
         <script src="js/torus.js"></script>
         <script src="js/mouseOver.js"></script>
         <script src="js/server_communication.js"></script>
+        <script src="js/ui_triggered_functions.js"></script>
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
@@ -128,19 +129,11 @@
         </div>
         <div id="ui_right">
             <div id="text window" >
-                <input id="chat-input" type="text"></input>
+                <form action="javascript:ui_functions_instance.handle_chat_input();">
+                    <input id="chat-input" type="text" placeholder="chat with users in room"></input>
+                </form>
                 <div id="messages">
                     <ul id="messages_ul" type="square">
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
-                        <li>asdf</li>
                     </ul>
                 </div>
             </div>
@@ -171,9 +164,11 @@
             animate();
 
             var game_role = 'spectator';
-            var game_logic_instance = new game_logic(torus_instance.params.w_seg, torus_instance.params.h_seg);
 
-            var server_comm_instance = new Custom_socket_io();
+            var game_logic_instance, server_comm_instance, ui_functions_instance;
+            game_logic_instance = new Game_logic(torus_instance.params.w_seg, torus_instance.params.h_seg);
+            ui_functions_instance = new UI_functions(); // this will use other instances
+            server_comm_instance = new Custom_socket_io(ui_functions_instance);
 
             function render() {
                 var delta = clock.getDelta();

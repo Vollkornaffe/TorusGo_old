@@ -6,7 +6,7 @@ function contains(arr, ele)
     return false;
 }
 
-function game_logic(width, height)
+function Game_logic(width, height)
 {
     this.move_num = 0;
     this.positions = [];
@@ -159,7 +159,6 @@ function game_logic(width, height)
             this.move_num++;
             return true;
         } else {
-            alert("Illegal Move!");
             return false;
         }
     };

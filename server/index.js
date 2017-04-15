@@ -4,7 +4,10 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var sqlite3 = require('sqlite3').verbose();
 var promise = require('bluebird');
+var logger = require('morgan')('combined');
+var validator = require('validator');
 
+app.use(logger);
 app.use(express.static(__dirname + '/public'));
 
 var usernames = {};
@@ -61,15 +64,7 @@ db.run(
     "STATE varchar," +
     "PRIMARY KEY (ID, MOVE))", function (err) { if (err) throw err; });
 
-app.get('*', function(req, res, next) {
-    var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-    console.log(fullUrl);
-    next();
-});
-
 app.get('/', function(req, res) {
-    console.log('someone noticed!');
-
     res.redirect('/test.html');
 });
 
@@ -96,18 +91,20 @@ io.on('connection', function(socket){
     socket.on('join room', function(room) {
         if (typeof room !== 'string') return;
 
+        var sanatized_room = validator.escape(room);
+
         socket.leave(socket.room);
         socket.broadcast.to(socket.room).emit('left', socket.username);
 
-        if (socket_rooms.hasOwnProperty(room)) {
-            socket.join(room);
-            socket.broadcast.to(room).emit('joined', socket.username);
-            socket.room = room;
+        if (socket_rooms.hasOwnProperty(sanatized_room)) {
+            socket.join(sanatized_room);
+            socket.broadcast.to(sanatized_room).emit('joined', socket.username);
+            socket.room = sanatized_room;
         } else {
-            socket_rooms[room] = new new_room();
-            room_list.push(room);
-            socket.join(room);
-            socket.room = room;
+            socket_rooms[sanatized_room] = new new_room();
+            room_list.push(sanatized_room);
+            socket.join(sanatized_room);
+            socket.room = sanatized_room;
         }
 
         console.log(socket.username, 'joined room', socket.room);
@@ -259,6 +256,14 @@ io.on('connection', function(socket){
         } else {
             socket.emit('error to client', 'not allowed to make move here')
         }
+    });
+
+    socket.on('chat', function(msg) {
+        var sanatized_msg = validator.escape(msg);
+        console.log(socket.username, 'posts', sanatized_msg, 'in', socket.room);
+        socket.broadcast.to(socket.room)
+            .emit('chat update', socket.username, sanatized_msg);
+        socket.emit('chat update', socket.username, sanatized_msg);
     });
 });
 
