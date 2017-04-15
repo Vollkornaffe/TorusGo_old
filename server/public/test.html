@@ -85,22 +85,22 @@
                     <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Room
                         <span class="caret"></span></button>
                     <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">default</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.join_room(this.innerHTML)">default</a></li>
                         <li role="presentation" class="divider"></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 0</a></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 1</a></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 2</a></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="join_room(this.innerHTML)">Room 3</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.join_room(this.innerHTML)">Room 0</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.join_room(this.innerHTML)">Room 1</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.join_room(this.innerHTML)">Room 2</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.join_room(this.innerHTML)">Room 3</a></li>
                     </ul>
                 </div>
                 <div class="dropdown" style="float: left">
                     <button class="btn btn-primary dropdown-toggle" id="menu2" type="button" data-toggle="dropdown">Role
                         <span class="caret"></span></button>
                     <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">spectate</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.play_as(this.innerHTML)">spectate</a></li>
                         <li role="presentation" class="divider"></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">black</a></li>
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="play_as(this.innerHTML)">white</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.play_as(this.innerHTML)">black</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick="server_comm_instance.play_as(this.innerHTML)">white</a></li>
                     </ul>
                 </div>
             </div>
@@ -125,18 +125,7 @@
                     </table>
                 </div>
             </div>
-
         </div>
-        <script>
-            var n = 0;
-            setInterval(function() {
-                var e = document.getElementById("messages_ul");
-                var newPoint = document.createElement('li');
-                newPoint.innerHTML = n.toString();
-                e.insertBefore(newPoint, e.firstChild);
-                n++;
-            },1000);
-        </script>
         <div id="ui_right">
             <div id="text window" >
                 <input id="chat-input" type="text"></input>
@@ -183,6 +172,8 @@
 
             var game_role = 'spectator';
             var game_logic_instance = new game_logic(torus_instance.params.w_seg, torus_instance.params.h_seg);
+
+            var server_comm_instance = new Custom_socket_io();
 
             function render() {
                 var delta = clock.getDelta();

@@ -27,7 +27,7 @@ function onDocumentMouseDown( event ) {
             })
         );
 
-        send_game_state(move_num, serialized_state);
+        server_comm_instance.send_game_state(move_num, serialized_state);
     }
 }
 
