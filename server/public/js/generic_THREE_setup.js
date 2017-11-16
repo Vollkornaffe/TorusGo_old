@@ -4,7 +4,7 @@ function init_threejs() {
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
     camera.position.y = 0;
     camera.position.x = 0;
-    camera.position.z =
+    camera.position.z = 0;
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x0097bd );
     var light, object;
